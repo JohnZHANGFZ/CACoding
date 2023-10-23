@@ -1,8 +1,13 @@
 package view;
 
+import data_access.FileUserDataAccessObject;
+import interface_adapter.clear_users.ClearController;
+import interface_adapter.clear_users.ClearState;
 import interface_adapter.signup.SignupController;
 import interface_adapter.signup.SignupState;
 import interface_adapter.signup.SignupViewModel;
+import use_case.clear_users.ClearInputBoundary;
+import use_case.clear_users.ClearInteractor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,6 +17,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class SignupView extends JPanel implements ActionListener, PropertyChangeListener {
     public final String viewName = "sign up";
@@ -27,11 +34,13 @@ public class SignupView extends JPanel implements ActionListener, PropertyChange
 
     // TODO Note: this is the new JButton for clearing the users file
     private final JButton clear;
+    private final ClearInteractor clearInteractor;
 
     public SignupView(SignupController controller, SignupViewModel signupViewModel) {
 
         this.signupController = controller;
         this.signupViewModel = signupViewModel;
+        this.clearInteractor = new ClearInteractor()
         signupViewModel.addPropertyChangeListener(this);
 
         JLabel title = new JLabel(SignupViewModel.TITLE_LABEL);
@@ -54,7 +63,7 @@ public class SignupView extends JPanel implements ActionListener, PropertyChange
         //      a CLEAR_BUTTON_LABEL constant which is defined in the SignupViewModel class.
         //      You need to add this "clear" button to the "buttons" panel.
         clear = new JButton(SignupViewModel.CLEAR_BUTTON_LABEL);
-
+        buttons.add(clear);
         signUp.addActionListener(
                 // This creates an anonymous subclass of ActionListener and instantiates it.
                 new ActionListener() {
@@ -79,7 +88,14 @@ public class SignupView extends JPanel implements ActionListener, PropertyChange
                 new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-
+                        if (e.getSource().equals(clear)) {
+                            try {
+                                ArrayList<String> users = clearController.execute();
+                                JOptionPane.showConfirmDialog(null, users);
+                            } catch (IOException ex){
+                                throw new RuntimeException(ex);
+                            }
+                        }
                     }
                 }
         );
